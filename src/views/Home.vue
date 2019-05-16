@@ -1,18 +1,43 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <div>星星组件</div>
+    <stars :starNumer.sync="starNumer"></stars>  
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import HelloWorld from '@/components/HelloWorld.vue'
-
+import stars from '@/components/star.vue';
 export default {
-  name: 'home',
+  name: "home",
+  data() {
+    return {
+      // 星星组件 部分
+      starNumer:2,
+    };
+  },
   components: {
-    HelloWorld
+    stars,
+  },
+  watch:{
+    starNumer(val){
+      console.log(val);
+    },
+  },
+  mounted() {
+  },
+  methods: {
+  }
+};
+</script>
+
+<style lang="less">
+.starBox{
+  display: flex;
+  .star{
+    width: 50px;
+    height: 50px;
   }
 }
-</script>
+</style>
+
