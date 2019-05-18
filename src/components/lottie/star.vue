@@ -7,7 +7,7 @@
 </template>
 
 <script>
-import star from "@/components/lottie.vue";
+import star from "@/components/lottie/lottie.vue";
 // 获取星星所需要的 json 数据
 import * as animationData from "@/assets/lottie/72-favourite-app-icon.json";
 export default {

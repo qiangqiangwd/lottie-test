@@ -15,7 +15,7 @@
               ></hello>
             </div>
 
-            <button @click="sayHello">打个招呼？</button>
+            <button @click="sayHello">hello♪(･ω･)ﾉ</button>
           </div>
         </div>
       </div>
@@ -24,7 +24,7 @@
     </div>
     <menuCom
       class="btn"
-      :tips="visibility?'快关了':'别点我'"
+      :tips="visibility?'(✪ω✪)':'(ˇωˇ」∠)_'"
       :visibility.sync="visibility"
       @menuChange="menuChange"
     ></menuCom>
@@ -33,9 +33,10 @@
 </template>
 
 <script>
-import menuCom from "@/components/menu.vue";
+import menuCom from "@/components/lottie/menu.vue";
 
-import hello from "@/components/lottie.vue";
+import hello from "@/components/lottie/lottie.vue";
+import * as animationData from "@/assets/lottie/hello.json";
 export default {
   components: { menuCom, hello },
   props: {},
@@ -47,7 +48,8 @@ export default {
 
       //  你好部分
       helloOpt: {
-        path: "https://assets2.lottiefiles.com/packages/lf20_VZWGZs.json"
+        // path: "https://assets2.lottiefiles.com/packages/lf20_VZWGZs.json"
+        animationData: animationData
       },
       showHello: false
     };

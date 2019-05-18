@@ -8,7 +8,7 @@
 </template>
 
 <script>
-import menuIcon from "@/components/lottie.vue";
+import menuIcon from "@/components/lottie/lottie.vue";
 // 获取所需要的 json 数据
 import * as animationData from "@/assets/lottie/menuButton1.json";
 // import * as animationData from "@/assets/lottie/menuButton2.json";
@@ -26,7 +26,7 @@ export default {
   },
   watch:{
     visibility(val){
-        val == this._isShow || (this._changeStatus);
+        val == this._isShow || (this._changeStatus());
     },
   },
   methods: {

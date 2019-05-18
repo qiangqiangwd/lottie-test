@@ -8,7 +8,7 @@
 </template>
 
 <script>
-import checkCom from "@/components/lottie.vue";
+import checkCom from "@/components/lottie/lottie.vue";
 // 获取所需要的 json 数据
 import * as animationData from "@/assets/lottie/Check-Mark-Success-Data.json";
 export default {
