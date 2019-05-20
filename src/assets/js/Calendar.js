@@ -118,7 +118,7 @@ Calendar.prototype = {
                     sortNum = item.days[item.days.length - 1].sort + 1; // 获取最新的排序号
                 }
             }
-
+            
             // 本月天数数据
             for (let i = 1; i <= monthDay; i++) {
                 item.days.push({
