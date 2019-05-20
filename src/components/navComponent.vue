@@ -8,6 +8,7 @@
       </div>
     </div>
 
+    <!-- 占位置用 -->
     <div class="zanWei"></div>
   </div>
 </template>
@@ -16,14 +17,6 @@
 export default {
   components: {},
   props: ["url", "title"],
-  data() {
-    return {};
-  },
-  watch: {},
-  computed: {},
-  methods: {},
-  created() {},
-  mounted() {}
 };
 </script>
 <style scoped lang='less'>
@@ -45,6 +38,7 @@ export default {
   background: #fff;
   font-size: 14px;
   position: relative;
+  box-shadow: 0 0 10px #cccccc;
   .title {
     position: absolute;
     top: 50%;

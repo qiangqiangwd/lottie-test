@@ -8,6 +8,7 @@
 *{
   margin: 0;
   padding: 0;
+  color: #333333;
 }
 body{
   background: #f4f4f4;
