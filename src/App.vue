@@ -30,4 +30,12 @@ button {
 a{
   text-decoration: none;
 }
+
+.title1 {
+  font-size: 18px;
+  margin: 15px 0;
+  border-left: 3px solid #2c84fc;
+  padding-left: 10px;
+  line-height: 1;
+}
 </style>

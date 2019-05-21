@@ -4,30 +4,31 @@
  */
 
 /**
+ * initTime: 日历初始化的时间，即数据从当前日期开始 (格式 2019-5-18，未传天则默认 第一天，showMonth 以这个为基准)
+ * nowTime: 当前的时间（不传则默认当天，exceedNowNotUse，showDays 以这个为基准）
  * showMonth:显示的月份数（默认1个月）
- * desc：倒序显示（默认false）
+ * showDays:显示的天数（当和 showMonth 同时存在时，以 showDays 为主）
+ * desc：时间倒序显示（默认false），注意：使用倒序时必须注意星期也必须跟着倒序
  * exceedNowNotUse: 超过当前时间不可使用(默认false)
  * startWeek: 开始的星期数(默认0)[0 - 6], 默认:顺序为：日0 一1 二2 三3 四4 五5 六6
- * initTime: 当前显示的时间 (格式 2019-5-18，未传天则默认 第一天)，
  * isShowSupply: 是否在本月 数据中补齐上月下月的日期（默认 true）
  */
 function Calendar(opts = {}) {
     this._opts = opts;
     // 开始的星期数
     this._opts.startWeek || (this._opts.startWeek = 0);
-    this._opts.isShowSupply || (this._opts.isShowSupply = true);
-
-    this._init();
+    // 若不为true和false，设置默认默认
+    typeof this._opts.isShowSupply === 'boolean' || (this._opts.isShowSupply = true);
 }
 
 Calendar.prototype = {
     _init() {
         let _opts = this._opts; // 传入的参数
-        this._nowTime = this.getDetailInfo(); // 当前时间
+        this._nowTime = _opts.nowTime ? this.getDetailInfo(_opts.nowTime, true) : this.getDetailInfo(); // 当前时间
 
         // 日历开始的时间(格式 2019-5-18，未传天则默认 第一天)，
         // 若未传参数则默认为当前时间
-        this._initTime = _opts.initTime ? this.getDetailInfo(_opts.initTime) : this._nowTime;
+        this._initTime = _opts.initTime ? this.getDetailInfo(_opts.initTime, true) : this._nowTime;
 
         // 获取返回的月份数据（循环的数据）
         this._resOption = this._getLoopDateInfo(_opts, this._initTime);
@@ -46,23 +47,31 @@ Calendar.prototype = {
             arr.push(this.getDetailInfo(`${year}-${month}`));
 
             if (_opts.desc) {
-                month = (month - 1) <= 0 ? (() => {
-                    year--;
-                    return 12
-                })() : month - 1;
+                [month, year] = this._getPrevMonth(month, year);
             } else {
-                month = (month + 1) > 12 ? (() => {
-                    year++;
-                    return 1
-                })() : month + 1;
+                [month, year] = this._getNextMonth(month, year);
             }
         }
-        // console.log(arr);
-
         return arr
     },
+    // 获取上一个月（年）
+    _getPrevMonth(month, year) {
+        month = (month - 1) <= 0 ? (() => {
+            year--;
+            return 12
+        })() : month - 1;
+        return [month, year]
+    },
+    // 获取下一个月（年）
+    _getNextMonth(month, year) {
+        month = (month + 1) > 12 ? (() => {
+            year++;
+            return 1
+        })() : month + 1;
+        return [month, year]
+    },
     // 获取对应的年月日
-    getDetailInfo(t) {
+    getDetailInfo(t, f) {
         let date = t ? new Date(t) : new Date();
         let [y, m, d] = [
             date.getFullYear(),
@@ -72,15 +81,12 @@ Calendar.prototype = {
         let resObj = {
             year: y,
             month: m,
-            time: `${y}-${m>=10?m:'0'+m}`,
-            days: [],
+            time: `${y}-${m >= 10 ? m : '0' + m}`,
+            // days: [],
         }
-        if (!t) resObj.day = d;
+        if (!t || f) resObj.day = d;  // 是否显示天
+        else resObj.days = [];
         return resObj
-    },
-    // 判断闰年
-    runNian(_year) {
-        return _year % 400 === 0 || (_year % 4 === 0 && _year % 100 !== 0)
     },
     // 判断某年某月的几号是星期几 （默认1号）
     getFirstDay(_year, _month, _day = 1) {
@@ -94,12 +100,12 @@ Calendar.prototype = {
         return (new Date(_year, _month, type)).getDate()
     },
     // 获取数据（常规数据）
-    getCalendarData() {
+    getCalendarData(callback) {
+        this._init(); // 对所有的数据进行初始化，防止再次调用出错
+
         let _opts = this._opts;
         let resOption = this._resOption,
-            _eUse = _opts.exceedNowNotUse,  // 超过当前时间是否可以使用
-            _nowTime = this._nowTime,
-            _isShowSupply = _opts.isShowSupply
+            _nowTime = this._nowTime
             ;
 
         resOption.forEach(item => {
@@ -111,43 +117,49 @@ Calendar.prototype = {
             item.firstDay = firstDay;
 
             // 在本月中补充上月的日期
-            if (_isShowSupply){
-                let prevMonth = this._addPrevNextMonth('prev', _opts, item, 0)
-                item.days.push(...prevMonth);
-                if (item.days.length - 1 > 0){
-                    sortNum = item.days[item.days.length - 1].sort + 1; // 获取最新的排序号
-                }
+            let prevMonth = this._addPrevNextMonth('prev', _opts, item, 0)
+            item.days.push(...prevMonth);
+            if (item.days.length - 1 > 0) {
+                sortNum = item.days[item.days.length - 1].sort + 1; // 获取最新的排序号
             }
-            
-            // 本月天数数据
+
+            // 本月天数数据（可在回调函数中添加自己想要返回的参数）
+            this.SurplusDays = false;
+            // debugger;
             for (let i = 1; i <= monthDay; i++) {
                 item.days.push({
                     d: i,
                     sort: sortNum++,
-                    isToday: (item.year == _nowTime.year && item.month == _nowTime.month && i == _nowTime.day), // 是否为今天
-                    canUse: !_eUse ? true :
-                        !(
-                            item.year > _nowTime.year ||
-                            (item.year <= _nowTime.year && item.month > _nowTime.month) ||
-                            (item.year <= _nowTime.year && item.month <= _nowTime.month && i > _nowTime.day)
-                        ), // 日期是否能使用
+                    // isToday: (item.year == _nowTime.year && item.month == _nowTime.month && i == _nowTime.day), 
+                    roDate:true, // 表示为本月天数的数据
+                    canUse: this._judgeTodayCanUse(item, _opts, i)
                 });
+                if (item.year == _nowTime.year && item.month == _nowTime.month && i == _nowTime.day) { // 是否为今天
+                    item.days[item.days.length - 1].isToday = true;
+                }
+
+                callback && callback(i);
             }
 
             // 在本月中补充下月的日期
-            if (_isShowSupply) {
-                let nextMonth = this._addPrevNextMonth('next', _opts, item, sortNum);
-                item.days.push(...nextMonth);
+            let nextMonth = this._addPrevNextMonth('next', _opts, item, sortNum);
+            item.days.push(...nextMonth);
+
+            if (_opts.desc) { // 倒序显示日期
+                item.days.sort((a, b) => b.sort - a.sort);
             }
+
+            // console.log(item);
         });
 
         return resOption.length <= 1 ? resOption[0] : resOption
     },
     // 补充上、下月天数（在本月中）
-    _addPrevNextMonth(type, _opts, item, sortNum){
-        let arr = [];
-        // debugger;
-        if(type === 'prev'){
+    _addPrevNextMonth(type, _opts, item, sortNum) {
+        let arr = [],
+            isShowSupply = _opts.isShowSupply  //是否显示补充天数
+            ;
+        if (type === 'prev') {
             // 当月1号为星期几
             let firstDay = this.getFirstDay(item.year, item.month);
             // 上一个月有几天
@@ -156,18 +168,18 @@ Calendar.prototype = {
             let delWeek = firstDay - _opts.startWeek; //获取前面显示的上个月的天数
             for (let j = delWeek >= 0 ? delWeek : 7 + delWeek; j > 0; j--) {
                 arr.push({
-                    d: prevMonthDay - j + 1,
+                    d: isShowSupply ? prevMonthDay - j + 1 : '', // 当不需要显示前时间时，内容为空
                     sort: sortNum++,
                     canUse: false,
                 });
             }
-        }else{
+        } else {
             // 判断是否需要补充
-            // 42 代表 一共 6行 7列（星期数）
-            let addNum = 42 - item.days.length;
-            for (let i = 1; i <= addNum;i++){
+            // 必须被7整除(若想固定行数，可直接将值固定为42,6行7列)
+            let addNum = (item.days.length <= 35 && !isShowSupply ? 35 : 42) - item.days.length;
+            for (let i = 1; i <= addNum; i++) {
                 arr.push({
-                    d: i,
+                    d: isShowSupply ? i : '',
                     sort: sortNum++,
                     canUse: false,
                 });
@@ -175,6 +187,74 @@ Calendar.prototype = {
         }
 
         return arr
+    },
+    /**
+     * === 当前天数是否可用判断 ===
+     */
+    // 判断本月本天是否可以使用
+    _judgeTodayCanUse(item, opts, i) {
+        let _nowTime = this._nowTime, // 当前时间
+            _eUse = opts.exceedNowNotUse,  // 超过当前时间是否可以使用
+            showDays = opts.showDays  // 显示的天数（范围）
+            ;
+        // debugger;
+        // 进行判断
+        let sendOpt = [item, _nowTime, i]; // 传入的公共参数
+        let res1 = this._judgeExeceed(_eUse, ...sendOpt),
+            res2 = this._judgeShowDays(showDays, ...sendOpt);
+        ;
+
+        return res1 && res2
+    },
+    // 超过当前时间的判断
+    _judgeExeceed(eUse, item, _nowTime, i) {
+        return !eUse ? true : (
+            item.year < _nowTime.year ||
+            (item.year == _nowTime.year && item.month < _nowTime.month) ||
+            (item.year == _nowTime.year && item.month == _nowTime.month && i <= _nowTime.day)
+        );
+    },
+    // 显示的天数的判断（范围）
+    _judgeShowDays(showDays, item, _nowTime, i) {
+        /**
+         * 条件：
+         * 1、当范围在本月内时
+         * 2、超出本月
+         */
+
+        let day = _nowTime.day;
+        // 不含有天数参数直接返回 true
+        // 含有时，在月份（同年份下）、年份大于当前时间，返回 false
+        if (!showDays || item.year > _nowTime.year || (item.year == _nowTime.year && item.month > _nowTime.month)) {
+            return !showDays
+        }
+
+        if (day >= showDays) {  // 范围不超过本月
+            return (item.year == _nowTime.year && item.month == _nowTime.month) && (_nowTime.day - showDays < i && i <= _nowTime.day)
+        } else {  // 超出
+            if (item.year == _nowTime.year && item.month == _nowTime.month) { // 在本月内
+                return i <= _nowTime.day
+            } else {
+                let Days = this.getMonthDay(item.year, item.month); // 当前月份的天数
+
+                // 在本月时， 获取距离当前时间（_nowTime）的剩余天数,只获取一次防止重复获取
+                if (!this.SurplusDays){
+                    this.SurplusDays = this._loopGetInfo([item.month, item.year], _nowTime, showDays);
+                }
+                return Days - this.SurplusDays < i
+            }
+        }
+    },
+    // 返回的参数 = showDays - (initTime 距离 _nowTime 的天数) 【即本月剩余显示天数】
+    _loopGetInfo(timeOpt, _nowTime,days) {
+        let [m, y] = this._getNextMonth(...timeOpt); // 获取下月的月份和年份[月份,年份]
+        while (!(y == _nowTime.year && m == _nowTime.month) && days > 0){
+            let dNum = this.getMonthDay(y, m); // 获取下一月份的天数 
+            days = days - dNum;
+            [m, y] = this._getNextMonth(m,y); // 时间变化
+        }
+
+        return days - _nowTime.day
     },
 };
 
