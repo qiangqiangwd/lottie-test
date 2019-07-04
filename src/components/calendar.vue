@@ -14,7 +14,7 @@
           v-for="(item,index) in calcData.days"
           :key="index"
           :class="[item.isToday?'isToday':'',item.canUse?'':'notCanUse',item.canUse&&clickDate==`${calcData.year}-${calcData.month}-${item.d}`?'activeDate':'']"
-          @click="chooseDay(item,calcData.time+item.d)"
+          @click="chooseDay(item)"
         >{{item.d}}</li>
       </ul>
     </div>
@@ -25,44 +25,32 @@
 import Calendar from "@/assets/js/Calendar";
 export default {
   components: {},
-  props: [""],
+  props: ["options"],
   data() {
     return {
       calcData: false, // 日历的数据
       weeks: ["一", "二", "三", "四", "五", "六", "日"],
-      clickDate: ""
+      clickDate: "",
+
+
+      riLi:false,
     };
   },
   watch: {},
   computed: {},
   created() {
-    // console.log(this.calcData);
+    let opts = this.options || {};
+    this.riLi = new Calendar(opts);
+    console.log(this.riLi);
     this.setCalendarData();
-    window.onload = ()=>{
-      console.log(BMap);
-    };
   },
   mounted() {},
   methods: {
     // 设置日历参数
     setCalendarData(initTime) {
-      let opts = {
-        // showMonth: 5, // 显示1月份的日期
-        // showDays: 99, // 显示天数
-        // desc: true,
-        // exceedNowNotUse: true,
-        initTime: "2019-5",
-        // nowTime: '2019-3-10',
-        // isShowSupply: false,
-        startWeek: 1 // 日历从哪个星期开始，(默认星期天,数值：日->六：0-6)
-      };
+      if (initTime) this.riLi._opts.initTime = initTime; // 参数重置
 
-      if (initTime) opts.initTime = initTime;
-
-      let riLi = new Calendar(opts);
-      let arr = riLi.getCalendarData();
-      this.calcData = arr;
-      // console.log(arr);
+      this.calcData = this.riLi.getCalendarData(); // 设置参数
     },
     // 点击上下月
     changeData(type) {
@@ -82,11 +70,13 @@ export default {
     },
 
     // 选则天数
-    chooseDay(item, date) {
+    chooseDay(item) {
       let calcData = this.calcData;
-      console.log(item, calcData);
       if (item.canUse) {
-        this.clickDate = `${calcData.year}-${calcData.month}-${item.d}`;
+        let time = `${calcData.year}-${calcData.month}-${item.d}`
+        this.clickDate = time;
+
+        this.riLi.setDateRange(time);
       }
       // console.log(this.clickDate,date);
     }
@@ -139,6 +129,13 @@ export default {
     border: 1px solid red;
     border-radius: 4px;
     transition: border-color linear 0.25s;
+    position: relative;
+    /* &::after{
+      content:'起始日期';
+      font-size: 12px;
+      line-height: 1.2;
+      position: absolute;
+    } */
   }
 }
 </style>

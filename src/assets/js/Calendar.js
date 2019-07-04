@@ -12,6 +12,8 @@
  * exceedNowNotUse: 超过当前时间不可使用(默认false)
  * startWeek: 开始的星期数(默认0)[0 - 6], 默认:顺序为：日0 一1 二2 三3 四4 五5 六6
  * isShowSupply: 是否在本月 数据中补齐上月下月的日期（默认 true）
+ * startRange: 选中日历起始显示范围（'2019-4-15',若无天默认第一天，下同）
+ * endRange: 选中日历结束显示范围（'2019-5-20'）
  */
 function Calendar(opts = {}) {
     this._opts = opts;
@@ -19,6 +21,7 @@ function Calendar(opts = {}) {
     this._opts.startWeek || (this._opts.startWeek = 0);
     // 若不为true和false，设置默认默认
     typeof this._opts.isShowSupply === 'boolean' || (this._opts.isShowSupply = true);
+    typeof this._opts.showDaysType === 'next' || (this._opts.showDaysType = 'prev');
 }
 
 Calendar.prototype = {
@@ -123,22 +126,20 @@ Calendar.prototype = {
                 sortNum = item.days[item.days.length - 1].sort + 1; // 获取最新的排序号
             }
 
-            // 本月天数数据（可在回调函数中添加自己想要返回的参数）
+            // 本月天数数据
             this.SurplusDays = false;
-            // debugger;
             for (let i = 1; i <= monthDay; i++) {
                 item.days.push({
                     d: i,
                     sort: sortNum++,
-                    // isToday: (item.year == _nowTime.year && item.month == _nowTime.month && i == _nowTime.day), 
                     roDate:true, // 表示为本月天数的数据
-                    canUse: this._judgeTodayCanUse(item, _opts, i)
+                    canUse: this._judgeTodayCanUse(item, _opts, i, monthDay)
                 });
                 if (item.year == _nowTime.year && item.month == _nowTime.month && i == _nowTime.day) { // 是否为今天
                     item.days[item.days.length - 1].isToday = true;
                 }
 
-                callback && callback(i);
+                callback && callback(i); // 设置回调，参数自己设置 
             }
 
             // 在本月中补充下月的日期
@@ -148,8 +149,6 @@ Calendar.prototype = {
             if (_opts.desc) { // 倒序显示日期
                 item.days.sort((a, b) => b.sort - a.sort);
             }
-
-            // console.log(item);
         });
 
         return resOption.length <= 1 ? resOption[0] : resOption
@@ -192,19 +191,21 @@ Calendar.prototype = {
      * === 当前天数是否可用判断 ===
      */
     // 判断本月本天是否可以使用
-    _judgeTodayCanUse(item, opts, i) {
+    _judgeTodayCanUse(item, opts, i, monthDay) {
         let _nowTime = this._nowTime, // 当前时间
             _eUse = opts.exceedNowNotUse,  // 超过当前时间是否可以使用
-            showDays = opts.showDays  // 显示的天数（范围）
+            showDays = opts.showDays,  // 显示的天数（范围）
+            type = opts.showDaysType
             ;
         // debugger;
         // 进行判断
-        let sendOpt = [item, _nowTime, i]; // 传入的公共参数
+        let sendOpt = [item, _nowTime, i, monthDay]; // 传入的公共参数
         let res1 = this._judgeExeceed(_eUse, ...sendOpt),
-            res2 = this._judgeShowDays(showDays, ...sendOpt);
+            res2 = this._judgeShowDays(showDays, ...sendOpt, type),
+            res3 = this._setDateRange(opts, ...sendOpt)
         ;
 
-        return res1 && res2
+        return res1 && res2 && res3
     },
     // 超过当前时间的判断
     _judgeExeceed(eUse, item, _nowTime, i) {
@@ -215,14 +216,13 @@ Calendar.prototype = {
         );
     },
     // 显示的天数的判断（范围）
-    _judgeShowDays(showDays, item, _nowTime, i) {
+    _judgeShowDays(showDays, item, _nowTime, i, monthDay, type) {
         /**
          * 条件：
          * 1、当范围在本月内时
          * 2、超出本月
          */
-
-        let day = _nowTime.day;
+        let day = _nowTime.day; // 当前的天数
         // 不含有天数参数直接返回 true
         // 含有时，在月份（同年份下）、年份大于当前时间，返回 false
         if (!showDays || item.year > _nowTime.year || (item.year == _nowTime.year && item.month > _nowTime.month)) {
@@ -255,6 +255,19 @@ Calendar.prototype = {
         }
 
         return days - _nowTime.day
+    },
+
+    // 设置范围
+    _setDateRange(opts, item, _nowTime, i, monthDay){
+        /** 
+         * 思路：无论是起始时间还是结束时间，
+         * 当为起始时间时 startRange ，其之前的时间将不可用
+         * 当为结束时间时 endRange ，其之后的时间将不可用
+         **/ 
+        // if (opts.startRange ||){}
+        // if(){}
+
+        // this.getCalendarData(); // 进行数据获取
     },
 };
 

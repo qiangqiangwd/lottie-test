@@ -15,7 +15,7 @@
 initTime: 日历初始化的时间，即数据从当前日期开始 (格式 2019-5-18，未传天则默认 第一天)
 nowTime: 当前的时间（不传则默认当天，exceedNowNotUse 以这个为基准）
 showMonth:显示的月份数
-showDays:显示的天数（当和 showMonth 同时存在时，以 showDays 为主）
+showDays:显示的天数（当和 showMonth 同时存在时，以 showDays 为主，显示以前的天数）
 desc：时间倒序显示（默认false），注意：使用倒序时必须注意星期也必须跟着倒序，否则，哼哼┐(￣ヘ￣)┌！
 exceedNowNotUse: 超过当前时间不可使用(默认false)【若有 initTime ，以其为准】
 startWeek: 开始的星期数(默认0)[0 - 6], 默认:顺序为：日0 一1 二2 三3 四4 五5 六6
@@ -28,13 +28,15 @@ isShowSupply: 是否在本月 数据中补齐上月下月的日期（默认 true
           <p>3、代码下载和查看看上方 '查看js源码' ↑</p>
           <p>4、真的还有待完善啊~</p>
           <p>4、(((((((((((っ•ω•)っ Σ(σ｀•ω•´)σ 嗯，起飞！</p>
+          <img src="data:image/png;
         </div>
       </div>
       <div>
         <div class="title1">最简单的使用示例</div>
         <calendar></calendar>
-        <!-- <div class="title1">开始搞点骚操作</div>
-        <calendar></calendar> -->
+        <div class="title1">开始搞点骚操作</div>
+        <p class='tips'>显示天数（showDays）为20天，不进行补齐（isShowSupply：false），</p>
+        <calendar :options="riLiOptions1"></calendar>
       </div>
     </div>
   </div>
@@ -50,7 +52,18 @@ export default {
   },
   props: {},
   data() {
-    return {};
+    return {
+      riLiOptions1:{
+        // showMonth: 5, // 显示1月份的日期
+        showDays: 20, // 显示天数
+        // desc: true,
+        // exceedNowNotUse: true,
+        // initTime: "2019-3-10",
+        // nowTime: '2019-4',
+        isShowSupply: false,
+        startWeek: 1 // 日历从哪个星期开始，(默认星期天,数值：日->六：0-6)
+      },
+    };
   }
 };
 </script>

@@ -4,6 +4,7 @@
     <div>
       <router-link to="/rili">跳转日历</router-link>
       <router-link to="/lottiePage">跳转lottie动画组件</router-link>
+      <router-link to="/gameHelp">帮助页面</router-link>
     </div>
   </div>
 </template>

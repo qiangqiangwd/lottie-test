@@ -24,6 +24,11 @@ export default new Router({
       path: '/lottiePage',
       name: 'lottiePage',
       component: () => import('./views/lottiePage.vue')
+    },
+    {
+      path: '/gameHelp',
+      name: 'gameHelp',
+      component: () => import('./views/gameHelp.vue')
     }
   ]
 })
